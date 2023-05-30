@@ -5,13 +5,67 @@ import 'dart:ffi';
 import 'package:auth_app/components/custom_button.dart';
 import 'package:auth_app/components/input_textfield.dart';
 import 'package:auth_app/components/square_tile.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class LoginScreen extends StatelessWidget {
-  final TextEditingController usernameController = TextEditingController();
+class LoginScreen extends StatefulWidget {
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController emailController = TextEditingController();
+
   final TextEditingController passwordController = TextEditingController();
 
-  void signUserIn() {}
+  void displayLoader() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+  }
+
+  void displayMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+        message,
+        style: TextStyle(
+          color: Colors.redAccent,
+        ),
+      ),
+      duration: Duration(
+        seconds: 3,
+      ),
+    ));
+  }
+
+  void signUserIn() async {
+    // add validation
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      displayMessage('Please fill all fields');
+      return;
+    }
+    // show loading circle
+    displayLoader();
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        displayMessage('Invalid Credential');
+      } else if (e.code == 'wrong-password') {
+        displayMessage('Invalid Password');
+      }
+    }
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +96,7 @@ class LoginScreen extends StatelessWidget {
               // Username textfield
               InputTextField(
                 hintText: 'Username',
-                controller: usernameController,
+                controller: emailController,
               ),
               spacer(10),
               // password textfield
