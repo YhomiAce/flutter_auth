@@ -4,6 +4,7 @@ import 'package:auth_app/components/custom_button.dart';
 import 'package:auth_app/components/input_textfield.dart';
 import 'package:auth_app/components/square_tile.dart';
 import 'package:auth_app/pages/signup_page.dart';
+import 'package:auth_app/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -162,12 +163,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // google button
-                  SquareTile(imagePath: 'assets/images/google.png'),
+                  SquareTile(
+                    imagePath: 'assets/images/google.png',
+                    onTap: () {
+                      AuthService().signInWithGoogle();
+                    },
+                  ),
                   SizedBox(
                     width: 25,
                   ),
                   // apple button
-                  SquareTile(imagePath: 'assets/images/apple.png'),
+                  SquareTile(
+                    imagePath: 'assets/images/apple.png',
+                    onTap: () {},
+                  ),
                 ],
               ),
               spacer(),
