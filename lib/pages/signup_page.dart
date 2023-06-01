@@ -3,21 +3,24 @@
 import 'package:auth_app/components/custom_button.dart';
 import 'package:auth_app/components/input_textfield.dart';
 import 'package:auth_app/components/square_tile.dart';
-import 'package:auth_app/pages/signup_page.dart';
+import 'package:auth_app/pages/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class LoginScreen extends StatefulWidget {
+class SignupScreen extends StatefulWidget {
   Function() onTap;
-  LoginScreen({required this.onTap});
+  SignupScreen({required this.onTap});
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController emailController = TextEditingController();
 
   final TextEditingController passwordController = TextEditingController();
+
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   void displayLoader() {
     showDialog(
@@ -31,41 +34,55 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void displayMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(
-        message,
-        style: TextStyle(
-          color: Colors.redAccent,
-        ),
-      ),
-      duration: Duration(
-        seconds: 3,
-      ),
-    ));
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.deepPurple,
+          title: Center(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
-  void signUserIn() async {
+  void register() async {
     // add validation
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+    if (emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        confirmPasswordController.text.isEmpty) {
       displayMessage('Please fill all fields');
+      return;
+    } else if (passwordController.text != confirmPasswordController.text) {
+      displayMessage('Passwords do not match');
       return;
     }
     // show loading circle
     displayLoader();
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        displayMessage('Invalid Credential');
-      } else if (e.code == 'wrong-password') {
-        displayMessage('Invalid Password');
+      Navigator.pop(context);
+      if (e.code == 'weak-password') {
+        displayMessage('The password provided is too weak.');
+      } else if (e.code == 'email-already-in-use') {
+        displayMessage('The account already exists for that email.');
       }
+    } catch (e) {
+      displayMessage(e.toString());
+    } finally {
+      Navigator.pop(context);
     }
-    Navigator.pop(context);
   }
 
   @override
@@ -87,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // welcome back
 
               Text(
-                'Welcome back you\'ve been missed!',
+                'Welcome To Meal Market!',
                 style: TextStyle(
                   color: Colors.grey[700],
                   fontSize: 16,
@@ -107,24 +124,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: passwordController,
               ),
               spacer(10),
-              // forgot password
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Forgot Password?',
-                      style: TextStyle(color: Colors.grey[500]),
-                    ),
-                  ],
-                ),
+              // confirm password textfield
+              InputTextField(
+                hintText: 'Confirm Password',
+                obsecureText: true,
+                controller: confirmPasswordController,
               ),
+
               spacer(25),
               // sign in button
               CustomButton(
-                onTap: signUserIn,
-                title: 'Sign In',
+                title: "Sign Up",
+                onTap: register,
               ),
               spacer(),
               // or continue with
@@ -141,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Text(
-                        'Or continue with',
+                        'Or signup with',
                         style: TextStyle(
                           color: Colors.grey[700],
                         ),
@@ -176,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Not a member?',
+                    'Already have an account?',
                     style: TextStyle(
                       color: Colors.grey[700],
                     ),
@@ -186,11 +197,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   GestureDetector(
                     onTap: widget.onTap,
-                    child: Text(
-                      'Register now',
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Text(
+                        'Login',
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   )

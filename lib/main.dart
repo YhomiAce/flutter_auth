@@ -1,5 +1,6 @@
 import 'package:auth_app/pages/auth_page.dart';
 import 'package:auth_app/pages/login.dart';
+import 'package:auth_app/pages/signup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: AuthPage(),
+      home: const AuthPage(),
     );
   }
 }
